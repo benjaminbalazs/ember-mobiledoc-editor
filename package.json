@@ -12,7 +12,6 @@
     "test": "ember try:testall",
     "update-changelog": "conventional-changelog -i CHANGELOG.md -r 0 -s"
   },
-  "repository": "bustlelabs/ember-mobiledoc-editor",
   "engines": {
     "node": ">= 0.10.0"
   },
