@@ -1,7 +1,7 @@
-import Ember from 'ember';
+import { helper as buildHelper } from '@ember/component/helper';
 
 export function hash(params, attributeHash) {
   return attributeHash;
 }
 
-export default Ember.Helper.helper(hash);
+export default buildHelper(hash);

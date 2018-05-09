@@ -1,11 +1,15 @@
+import { schedule, run, begin, end, join } from '@ember/runloop';
+import { copy } from '@ember/object/internals';
+import { deprecate } from '@ember/application/deprecations';
+import { A } from '@ember/array';
+import { camelize, capitalize } from '@ember/string';
+import EmberObject, { computed } from '@ember/object';
+import Component from '@ember/component';
 import Ember from 'ember';
 import layout from './template';
 import Editor from 'mobiledoc-kit/editor/editor';
 import { MOBILEDOC_VERSION } from 'mobiledoc-kit/renderers/mobiledoc';
 import assign from 'ember-mobiledoc-editor/utils/polyfill-assign';
-
-let { computed, Component } = Ember;
-let { capitalize, camelize } = Ember.String;
 
 export const ADD_CARD_HOOK = 'addComponent';
 export const REMOVE_CARD_HOOK = 'removeComponent';
@@ -66,8 +70,8 @@ export default Component.extend({
       mobiledoc = EMPTY_MOBILEDOC;
       this.set('mobiledoc', mobiledoc);
     }
-    this.set('componentCards', Ember.A([]));
-    this.set('componentAtoms', Ember.A([]));
+    this.set('componentCards', A([]));
+    this.set('componentAtoms', A([]));
     this.set('linkOffsets', null);
     this.set('activeMarkupTagNames', {});
     this.set('activeSectionTagNames', {});
@@ -86,7 +90,7 @@ export default Component.extend({
     },
 
     createListSection(tagName) {
-      Ember.deprecate('[ember-mobiledoc-editor] `createListSection` is deprecated. Use `toggleSection` with "ul" or "ol" instead', false);
+      deprecate('[ember-mobiledoc-editor] `createListSection` is deprecated. Use `toggleSection` with "ul" or "ol" instead', false);
       this.send('toggleSection', tagName);
     },
 
@@ -131,7 +135,7 @@ export default Component.extend({
   },
 
   editingContexts: computed(function() {
-    return Ember.A([]);
+    return A([]);
   }),
 
   willRender() {
@@ -174,9 +178,9 @@ export default Component.extend({
         element.id = destinationElementId;
 
         // The data must be copied to avoid sharing the reference
-        payload = Ember.copy(payload, true);
+        payload = copy(payload, true);
 
-        let card = Ember.Object.create({
+        let card = EmberObject.create({
           destinationElementId,
           cardName,
           payload,
@@ -184,7 +188,7 @@ export default Component.extend({
           editor,
           postModel: env.postModel
         });
-        Ember.run.schedule('afterRender', () => {
+        schedule('afterRender', () => {
           this.get('componentCards').pushObject(card);
         });
         return { card, element };
@@ -197,9 +201,9 @@ export default Component.extend({
         element.id = destinationElementId;
 
         // The data must be copied to avoid sharing the reference
-        payload = Ember.copy(payload, true);
+        payload = copy(payload, true);
 
-        let atom = Ember.Object.create({
+        let atom = EmberObject.create({
           destinationElementId,
           atomName,
           payload,
@@ -208,7 +212,7 @@ export default Component.extend({
           editor,
           postModel: env.postModel
         });
-        Ember.run.schedule('afterRender', () => {
+        schedule('afterRender', () => {
           this.get('componentAtoms').pushObject(atom);
         });
         return { atom, element };
@@ -228,9 +232,9 @@ export default Component.extend({
       // When pasting text that gets turned into a card, for example,
       // the add card hook would run outside the runloop if we didn't begin a new
       // one now.
-      if (!Ember.run.currentRunLoop) {
+      if (!run.currentRunLoop) {
         this._startedRunLoop = true;
-        Ember.run.begin();
+        begin();
       }
     });
     editor.didRender(() => {
@@ -238,17 +242,17 @@ export default Component.extend({
       // we must explicitly end it here.
       if (this._startedRunLoop) {
         this._startedRunLoop = false;
-        Ember.run.end();
+        end();
       }
     });
     editor.postDidChange(() => {
-      Ember.run.join(() => {
+      join(() => {
         this.postDidChange(editor);
       });
     });
     editor.inputModeDidChange(() => {
       if (this.isDestroyed) { return; }
-      Ember.run.join(() => {
+      join(() => {
         this.inputModeDidChange(editor);
       });
     });

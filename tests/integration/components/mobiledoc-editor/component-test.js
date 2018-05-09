@@ -1,3 +1,5 @@
+import { run } from '@ember/runloop';
+import Component from '@ember/component';
 import { moduleForComponent, test } from 'ember-qunit';
 import { selectRange } from 'dummy/tests/helpers/selection';
 import hbs from 'htmlbars-inline-precompile';
@@ -5,7 +7,6 @@ import createComponentCard from 'ember-mobiledoc-editor/utils/create-component-c
 import createComponentAtom from 'ember-mobiledoc-editor/utils/create-component-atom';
 import moveCursorTo from '../../../helpers/move-cursor-to';
 import simulateMouseup from '../../../helpers/simulate-mouse-up';
-import Ember from 'ember';
 import { MOBILEDOC_VERSION } from 'mobiledoc-kit/renderers/mobiledoc';
 import MobiledocKit from 'mobiledoc-kit';
 import {
@@ -14,8 +15,6 @@ import {
 import {
   simpleMobileDoc, linkMobileDoc, mobiledocWithCard
 } from '../../../helpers/create-mobiledoc';
-
-let { Component } = Ember;
 
 const COMPONENT_CARD_EXPECTED_PROPS = ['env', 'editCard', 'saveCard', 'cancelCard', 'removeCard', 'postModel'];
 
@@ -146,12 +145,12 @@ test('wraps component-card adding in runloop correctly', function(assert) {
   `);
 
   // Add a card without being in a runloop
-  assert.ok(!Ember.run.currentRunLoop, 'precond - no run loop');
+  assert.ok(!run.currentRunLoop, 'precond - no run loop');
   editor.run((postEditor) => {
     let card = postEditor.builder.createCardSection('demo-card');
     postEditor.insertSection(card);
   });
-  assert.ok(!Ember.run.currentRunLoop, 'postcond - no run loop after editor.run');
+  assert.ok(!run.currentRunLoop, 'postcond - no run loop after editor.run');
 
   assert.ok(this.$('#demo-card').length, 'demo card is added');
 });
@@ -508,7 +507,7 @@ test('it has `addCardInEditMode` action to add card in edit mode', function(asse
 test(`sets ${COMPONENT_CARD_EXPECTED_PROPS.join(',')} properties on card components`, function(assert) {
   assert.expect(COMPONENT_CARD_EXPECTED_PROPS.length);
 
-  let Component = Ember.Component.extend({
+  let Component = Component.extend({
     didInsertElement() {
       COMPONENT_CARD_EXPECTED_PROPS.forEach(propName => {
         assert.ok(!!this.get(propName), `has ${propName} property`);
@@ -529,7 +528,7 @@ test('component card `env` property exposes `isInEditor`', function(assert) {
   assert.expect(1);
 
   let env;
-  let Component = Ember.Component.extend({
+  let Component = Component.extend({
     didInsertElement() {
       env = this.get('env');
     }
@@ -551,7 +550,7 @@ test('(deprecated) `addCard` passes `data`, breaks reference to original payload
 
   let passedPayload;
 
-  const DemoCardComponent = Ember.Component.extend({
+  const DemoCardComponent = Component.extend({
     init() {
       this._super(...arguments);
       passedPayload = this.get('data');
@@ -603,7 +602,7 @@ test('`addCard` passes `payload`, breaks reference to original payload', functio
 
   let passedPayload;
 
-  const DemoCardComponent = Ember.Component.extend({
+  const DemoCardComponent = Component.extend({
     init() {
       this._super(...arguments);
       passedPayload = this.get('payload');
@@ -837,13 +836,13 @@ test('wraps component-atom adding in runloop correctly', function(assert) {
     {{/mobiledoc-editor}}
   `);
 
-  assert.ok(!Ember.run.currentRunLoop, 'precond - no run loop');
+  assert.ok(!run.currentRunLoop, 'precond - no run loop');
   editor.run((postEditor) => {
     let position = editor.range.head;
     let atom = postEditor.builder.createAtom('demo-atom', 'value', {});
     postEditor.insertMarkers(position, [atom]);
   });
-  assert.ok(!Ember.run.currentRunLoop, 'postcond - no run loop after editor.run');
+  assert.ok(!run.currentRunLoop, 'postcond - no run loop after editor.run');
 
   assert.ok(this.$('#demo-atom').length, 'demo atom is added');
 });
